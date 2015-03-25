@@ -32,8 +32,8 @@ option | result
 The save signing key is calculated as a 20 byte digest but only the first 16 bytes are used when signing files.
 There are 3 options for the output format, the default is 'native' and is used if this option is skipped.
 
-Format | Description | format
--------|-------------|-------
+Format | Description | Output format
+-------|-------------|--------------
 native | Key is displayed as a 16 byte signature | 737E064C0236BA3E7140EC2B91D76766
 raw | Full 20 byte digest | 737E064C0236BA3E7140EC2B91D76766C1F4B510
 xbtf | Xbox Trainer Format | 0X73, 0X7E, 0X06, 0X4C, 0X02, 0X36, 0XBA, 0X3E, 0X71, 0X40, 0XEC, 0X2B, 0X91, 0XD7, 0X67, 0X66
