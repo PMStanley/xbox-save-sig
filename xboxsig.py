@@ -23,14 +23,17 @@ import sys, getopt
 from struct import *
 
 def usage():
-    print "xboxsig.py -i <xbe file> // prints key in native format"
-    print "xboxsig.py -i <xbe file> -t // prints key in native format and includes game title"
-    print "xboxsig.py -i <xbe file> -o <outputfile.txt> //outputs key in ascii to specificed file"
-    print "xboxsig.py -g <game sig in text form> //generate key from input text rather than xbe file"
-    print "xboxsig.py -i <xbe file> -f <native|raw|xbtf> //prints out key in specified format, default is native if this paramenter is not used."
+    print("xboxsig.py -i <xbe file> // prints key in native format")
+    print("xboxsig.py -i <xbe file> -t // prints key in native format and includes game title")
+    print("xboxsig.py -i <xbe file> -o <outputfile.txt> //outputs key in ascii to specificed file")
+    print("xboxsig.py -g <game sig in text form> //generate key from input text rather than xbe file")
+    print("xboxsig.py -i <xbe file> -f <native|raw|xbtf> //prints out key in specified format, default is native if this paramenter is not used.")
 
 def main():
-    #set the default xbox key
+    #figure out if we're using Python 2
+    PY2 = sys.version_info[0] == 2
+
+    #set the default xbox key and some other base values
     xboxkey = '5C0733AE0401F7E8BA7993FDCD2F1FE0'
     fileOutput = False
     title = None
@@ -43,22 +46,32 @@ def main():
         usage()
         sys.exit(2)
 
+    #no args?  Display some usage examples and quit
     if len(opts) == 0:
         usage()
         sys.exit(2)
 
+    #work through the supplied arguments..
     for opt, arg in opts:
         if opt in ("-x", "--xboxkey"):
             xboxkey = arg
+
         elif opt in ("-o", "--outfile"):
             outputfile = arg
             fileOutput = True
+
         elif opt in ("-i", "--xbe"):
             xbeKey, title = getKeyfromXBE(arg)
+
         elif opt in ("-g", "--gamesig"):
-            xbeKey = arg.decode("hex")
+            if PY2:
+                xbeKey = arg.decode("hex")
+            else:
+                xbeKey = bytes.fromhex(arg)
+
         elif opt in ("-t", "--title"):
             includeTitle = True
+
         elif opt in ("-f", "--format"):
             if arg.lower() == 'xbtf':
                 format = 'xbtf'
@@ -69,7 +82,11 @@ def main():
 
 
     #generate the signing key
-    sigKey = generateKey(xboxkey.decode("hex"), xbeKey)
+    if PY2:
+        sigKey = generateKey(xboxkey.decode("hex"), xbeKey)
+    else:
+        sigKey = generateKey(bytes.fromhex(xboxkey), xbeKey)
+
 
     #output the key in the desired format
     if fileOutput:
@@ -84,7 +101,7 @@ def main():
     else:
         #write it out to the console instead
         if (includeTitle) and (title is not None):
-            print title
+            print(title)
         print(formatSigKey(sigKey, format))
 
 
@@ -94,16 +111,20 @@ def getKeyfromXBE(xbefile):
         #move to base address
         f.seek(260, 0)
         base = f.read(4)
+
         #move to cert address
         f.seek(280,0)
         cert = f.read(4)
+
         #get the location of the cert
         certAddress = unpack("i", cert)
         baseAddress = unpack("i", base)
         loc = certAddress[0] - baseAddress[0]
+
         #move to the title
         f.seek(loc + 12, 0)
         gameTitle = f.read(128)
+
         #move to the sigkey
         f.seek(loc + 192, 0)
         m_sig_key = f.read(16)
@@ -120,8 +141,10 @@ def generateKey(xkey, gkey):
 def formatSigKey(rawsig, formatting):
     if formatting == 'native':
         return rawsig[:32].upper()
+
     elif formatting == 'raw':
         return rawsig.upper()
+
     elif formatting == 'xbtf':
         returnstring = ''
         y = 0
