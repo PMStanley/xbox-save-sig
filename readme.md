@@ -43,3 +43,6 @@ Example:
 
 Output:
 `0X73, 0X7E, 0X06, 0X4C, 0X02, 0X36, 0XBA, 0X3E, 0X71, 0X40, 0XEC, 0X2B, 0X91, 0XD7, 0X67, 0X66`
+
+## Licence
+MIT
